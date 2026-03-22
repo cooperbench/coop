@@ -1,5 +1,5 @@
 {
-  "name": "coop",
+  "name": "@cooperbench/coop",
   "version": "0.1.0",
   "type": "module",
   "bin": {

@@ -4,7 +4,6 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { deriveScope } from "../session/scope.ts";
 import { generateSummary } from "../session/summary.ts";
 import { registerPeer, updatePeerStatus, heartbeat } from "../db/peers.ts";
-import { getClient } from "../db/client.ts";
 import { HEARTBEAT_INTERVAL_MS } from "../config.ts";
 import { listPeersTool } from "./tools/list_peers.ts";
 import { sendMessageTool } from "./tools/send_message.ts";
@@ -31,15 +30,6 @@ async function main(): Promise<void> {
   }
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
-
-  // Subscribe to inbound messages via Supabase Realtime
-  getClient()
-    .channel(`inbox:${scope.full}`)
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `to_scope=eq.${scope.full}` }, (payload) => {
-      // Write to stdout as a channel push for Claude Code to pick up
-      process.stdout.write(JSON.stringify({ type: "coop/message", data: payload.new }) + "\n");
-    })
-    .subscribe();
 
   // MCP server
   const server = new Server(

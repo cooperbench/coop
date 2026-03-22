@@ -1,11 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
-import { mkdirSync, writeFileSync } from "fs";
 import { createServer } from "http";
 import type { AddressInfo } from "net";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, CONFIG_DIR, AUTH_FILE } from "../../config.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../config.ts";
+import { getClient } from "../../db/client.ts";
 
 export async function login(): Promise<void> {
-  const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  // Use a temporary client for the PKCE flow (no storage yet)
+  const { createClient } = await import("@supabase/supabase-js");
+  const tempClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { flowType: "pkce", persistSession: false },
   });
 
@@ -46,7 +47,7 @@ export async function login(): Promise<void> {
       const port = (server.address() as AddressInfo).port;
       const callbackUrl = `http://localhost:${port}/callback`;
 
-      client.auth
+      tempClient.auth
         .signInWithOAuth({
           provider: "github",
           options: { redirectTo: callbackUrl, skipBrowserRedirect: true },
@@ -62,11 +63,15 @@ export async function login(): Promise<void> {
     setTimeout(() => { server.close(); reject(new Error("Timed out")); }, 5 * 60 * 1000);
   });
 
-  const { data: sessionData, error: sessionError } = await client.auth.exchangeCodeForSession(code);
+  // Exchange code and persist session via the shared client (which uses file storage)
+  const { data: sessionData, error: sessionError } = await tempClient.auth.exchangeCodeForSession(code);
   if (sessionError) throw new Error(`Session exchange failed: ${sessionError.message}`);
 
-  mkdirSync(CONFIG_DIR, { recursive: true });
-  writeFileSync(AUTH_FILE, JSON.stringify(sessionData.session, null, 2));
+  // Set session on the persistent client so it gets written to file storage
+  await getClient().auth.setSession({
+    access_token: sessionData.session.access_token,
+    refresh_token: sessionData.session.refresh_token,
+  });
 
   const username = sessionData.session.user.user_metadata["user_name"] as string;
   console.log(`Logged in as ${username}`);
