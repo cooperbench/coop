@@ -23,5 +23,5 @@ export async function install(): Promise<void> {
   }
 
   process.stdout.write(`\r  ${green("✓")} Registered with Claude Code\n`);
-  console.log(`\n  ${dim("Restart Claude Code to activate coop.")}\n`);
+  console.log(`\n  ${dim("Restart Claude Code to activate claude-coop.")}\n`);
 }

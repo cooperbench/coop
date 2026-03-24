@@ -32,7 +32,7 @@ program
 
 program.command("grants").description("List your active grants").action(grants);
 
-program.command("install").description("Register coop with Claude Code").action(install);
+program.command("install").description("Register with Claude Code").action(install);
 
 const machine = program.command("machine").description("Manage machine identity");
 machine.command("show").description("Show current machine name").action(machineShow);

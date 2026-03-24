@@ -5,7 +5,7 @@ export async function registerSquadMember(scope: string, summary: string | null)
   const client = getClient();
 
   const { data: { user }, error: userError } = await client.auth.getUser();
-  if (userError || !user) throw new Error("Not authenticated. Run `coop login` first.");
+  if (userError || !user) throw new Error("Not authenticated. Run `claude-coop login` first.");
 
   const username = user.user_metadata.user_name as string;
   if (!scope.startsWith(`${username}/`)) {

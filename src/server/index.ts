@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   process.on("SIGTERM", shutdown);
 
   const server = new Server(
-    { name: "coop", version: "0.1.0" },
+    { name: "claude-coop", version: "0.1.1" },
     {
       capabilities: {
         tools: {},

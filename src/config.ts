@@ -2,7 +2,7 @@ import { resolve } from "path";
 import { homedir, hostname } from "os";
 import { readFileSync } from "fs";
 
-export const CONFIG_DIR = resolve(homedir(), ".coop");
+export const CONFIG_DIR = resolve(homedir(), ".claude-coop");
 export const AUTH_FILE = resolve(CONFIG_DIR, "auth.json");
 export const CONFIG_FILE = resolve(CONFIG_DIR, "config.json");
 

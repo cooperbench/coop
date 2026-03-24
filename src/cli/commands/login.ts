@@ -22,7 +22,7 @@ export async function login(): Promise<void> {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>coop</title>
+  <title>claude-coop</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0a0a0a; color: #fff; }
     .card { text-align: center; }
