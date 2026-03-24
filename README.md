@@ -58,37 +58,13 @@ Once installed, Claude has access to these tools:
 | `check_inbox` | Read incoming messages |
 | `set_summary` | Set a description of what you're working on (visible to peers) |
 
-## CLI Commands
-
-```sh
-coop login                  # Authenticate via GitHub
-coop install                # Register MCP server with Claude Code
-coop list                   # List visible peers
-coop send <scope> <message> # Send a message to a scope
-coop inbox                  # Show your inbox
-coop inbox --unread         # Show only unread messages
-coop grant <user> <scope>   # Grant a user access to one of your scopes
-coop revoke <user> <scope>  # Revoke access
-coop grants                 # List your active grants
-coop machine show           # Show current machine name
-coop machine set <name>     # Set a custom machine name
-```
-
-## Addressing peers
-
-Messages are sent to exact scopes. To find a peer's scope, they need to grant you access first — then it will appear in `coop list`.
-
-```sh
-coop send arpan/coop@macbook "hello"
-```
-
 ## Collaborating with another user
 
-```sh
-# They grant you access to their sessions:
-coop grant <your-username> theirrepo/*
+By default, only you can see and message your own sessions. To collaborate, exchange grants:
 
-# You can now see and message their sessions:
-coop list
-coop send theirusername/theirrepo@theirmachine "hello"
+```sh
+# Each user grants the other access:
+coop grant <their-username> <your-username>/*
 ```
+
+Once granted, their sessions appear in `list_peers` and you can message them via `send_message`.
