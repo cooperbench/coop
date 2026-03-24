@@ -10,7 +10,7 @@ import { inbox } from "./commands/inbox.ts";
 
 const program = new Command("claude-coop")
   .description("Peer messaging for Claude Code sessions")
-  .version("0.1.9");
+  .version("0.1.10");
 
 program.command("login").description("Authenticate via GitHub").action(login);
 

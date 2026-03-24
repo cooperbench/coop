@@ -36,6 +36,8 @@ const CTRL_C = "\x03";
 
 const invert = (s: string) => `\x1b[7m${s}\x1b[0m`;
 const dim    = (s: string) => `\x1b[2m${s}\x1b[0m`;
+const green  = (s: string) => `\x1b[32m${s}\x1b[0m`;
+const red    = (s: string) => `\x1b[31m${s}\x1b[0m`;
 
 export type CheckboxItem = {
   label: string;
@@ -58,15 +60,16 @@ export async function checkbox(
 
   function buildLines(): string[] {
     const lines: string[] = [];
-    lines.push(`  ${message}`);
-    lines.push(dim("  ↑↓ to move  ·  space to toggle  ·  enter to confirm"));
+    lines.push(message);
+    lines.push(dim("↑↓ to move  ·  space to toggle  ·  enter to confirm"));
     lines.push("");
     for (let i = 0; i < items.length; i++) {
       const item = items[i]!;
-      if (item.dividerBefore) lines.push(dim("  ────"));
-      const mark = checked.has(item.value) ? "◉" : "○";
-      const line = `  ${mark} ${item.label}`;
-      lines.push(i === cursor ? invert(line) : line);
+      if (item.dividerBefore) lines.push(dim("────"));
+      const isChecked = checked.has(item.value);
+      const mark = isChecked ? green("✓") : red("✗");
+      const label = i === cursor ? invert(` ${item.label}`) : ` ${item.label}`;
+      lines.push(`${mark}${label}`);
     }
     lines.push("");
     return lines;
