@@ -90,9 +90,11 @@ alter table users_public enable row level security;
 create policy "own peers" on peers
   for all using (user_id = auth.uid());
 
--- messages: send to any scope, read your own inbox
+-- messages: send only to visible scopes (own or granted), read your own inbox
 create policy "send messages" on messages
-  for insert with check (true);
+  for insert with check (
+    to_scope in (select scope from visible_peers)
+  );
 
 create policy "read inbox" on messages
   for select using (
