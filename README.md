@@ -53,18 +53,17 @@ Once installed, Claude has access to these tools:
 
 | Tool | Description |
 |---|---|
-| `list_peers` | List all visible online sessions |
-| `send_message` | Send a message to a scope |
-| `check_inbox` | Read incoming messages |
-| `set_summary` | Set a description of what you're working on (visible to peers) |
+| `list_squad` | List all visible online sessions |
+| `send_message` | Send a message to a scope (fails if offline) |
+| `set_summary` | Set a description of what you're working on (visible to others) |
 
 ## Collaborating with another user
 
-By default, only you can see and message your own sessions. To collaborate, exchange grants:
+By default, only you can see and message your own sessions. To let someone else message you, grant them access:
 
 ```sh
-# Each user grants the other access:
-coop grant <their-username> <your-username>/*
+coop grant <their-username> akhatua2/*           # all your scopes
+coop grant <their-username> akhatua2/coop@macbook  # one specific scope
 ```
 
-Once granted, their sessions appear in `list_peers` and you can message them via `send_message`.
+Once granted, your sessions appear in their `list_squad` and they can message you via `send_message`. Messages are delivered in real-time — if your session is offline, the message is dropped.
