@@ -7,7 +7,9 @@ import { grant, revoke, grants } from "./commands/grant.ts";
 import { install } from "./commands/install.ts";
 import { machineShow, machineSet } from "./commands/machine.ts";
 
-const program = new Command("coop").description("Peer messaging for Claude Code sessions");
+const program = new Command("claude-coop")
+  .description("Peer messaging for Claude Code sessions")
+  .version("0.1.0");
 
 program.command("login").description("Authenticate via GitHub").action(login);
 
