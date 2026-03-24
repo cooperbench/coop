@@ -11,8 +11,8 @@ export async function login(): Promise<void> {
   });
 
   const code = await new Promise<string>((resolve, reject) => {
+    let port = 0;
     const server = createServer((req, res) => {
-      const port = (server.address() as AddressInfo).port;
       const url = new URL(req.url ?? "/", `http://localhost:${port}`);
       const code = url.searchParams.get("code");
       const error = url.searchParams.get("error_description") ?? url.searchParams.get("error");
@@ -44,7 +44,7 @@ export async function login(): Promise<void> {
     });
 
     server.listen(0, () => {
-      const port = (server.address() as AddressInfo).port;
+      port = (server.address() as AddressInfo).port;
       const callbackUrl = `http://localhost:${port}/callback`;
 
       tempClient.auth
