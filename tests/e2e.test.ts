@@ -5,7 +5,7 @@
  * These tests exercise the real DB flows: peer registration, messaging, inbox, grants.
  */
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { registerPeer, updatePeerStatus, listPeers, updatePeerSummary } from "../src/db/peers.ts";
+import { registerSquadMember, updateSquadStatus, listSquad, updateSquadSummary } from "../src/db/squad.ts";
 import { sendMessage, getInbox, markRead } from "../src/db/messages.ts";
 import { getClient } from "../src/db/client.ts";
 
@@ -21,7 +21,7 @@ async function cleanup() {
   const client = getClient();
   await client.from("messages").delete().in("from_scope", [TEST_SCOPE, OTHER_SCOPE]);
   await client.from("messages").delete().in("to_scope", [TEST_SCOPE, OTHER_SCOPE, "akhatua2/*"]);
-  await client.from("peers").delete().in("scope", [TEST_SCOPE, OTHER_SCOPE]);
+  await client.from("squad").delete().in("scope", [TEST_SCOPE, OTHER_SCOPE]);
 }
 
 describe("coop E2E", () => {
@@ -35,47 +35,47 @@ describe("coop E2E", () => {
 
   describe("peer registration", () => {
     it("registers a peer and returns it", async () => {
-      const peer = await registerPeer(TEST_SCOPE, "e2e test session");
+      const peer = await registerSquadMember(TEST_SCOPE, "e2e test session");
       expect(peer.scope).toBe(TEST_SCOPE);
       expect(peer.status).toBe("online");
       expect(peer.summary).toBe("e2e test session");
     });
 
     it("upserts on re-registration (no duplicate)", async () => {
-      const p1 = await registerPeer(TEST_SCOPE, "first");
-      const p2 = await registerPeer(TEST_SCOPE, "second");
+      const p1 = await registerSquadMember(TEST_SCOPE, "first");
+      const p2 = await registerSquadMember(TEST_SCOPE, "second");
       expect(p1.id).toBe(p2.id);
       expect(p2.summary).toBe("second");
     });
 
     it("updates summary", async () => {
-      await registerPeer(TEST_SCOPE, "original");
-      await updatePeerSummary(TEST_SCOPE, "updated summary");
-      const peers = await listPeers();
-      const peer = peers.find((p) => p.scope === TEST_SCOPE);
-      expect(peer?.summary).toBe("updated summary");
+      await registerSquadMember(TEST_SCOPE, "original");
+      await updateSquadSummary(TEST_SCOPE, "updated summary");
+      const members = await listSquad();
+      const member = members.find((p) => p.scope === TEST_SCOPE);
+      expect(member?.summary).toBe("updated summary");
     });
 
     it("marks peer offline", async () => {
-      await registerPeer(TEST_SCOPE, "going offline");
-      await updatePeerStatus(TEST_SCOPE, "offline");
-      const peers = await listPeers();
-      const peer = peers.find((p) => p.scope === TEST_SCOPE);
-      expect(peer?.status).toBe("offline");
+      await registerSquadMember(TEST_SCOPE, "going offline");
+      await updateSquadStatus(TEST_SCOPE, "offline");
+      const members = await listSquad();
+      const member = members.find((p) => p.scope === TEST_SCOPE);
+      expect(member?.status).toBe("offline");
     });
 
-    it("listPeers includes own registered scope", async () => {
-      await registerPeer(TEST_SCOPE, "list test");
-      const peers = await listPeers();
-      const found = peers.some((p) => p.scope === TEST_SCOPE);
+    it("listSquad includes own registered scope", async () => {
+      await registerSquadMember(TEST_SCOPE, "list test");
+      const members = await listSquad();
+      const found = members.some((p) => p.scope === TEST_SCOPE);
       expect(found).toBe(true);
     });
   });
 
   describe("messaging", () => {
     beforeAll(async () => {
-      await registerPeer(TEST_SCOPE, "messaging test");
-      await registerPeer(OTHER_SCOPE, "messaging other");
+      await registerSquadMember(TEST_SCOPE, "messaging test");
+      await registerSquadMember(OTHER_SCOPE, "messaging other");
     });
 
     it("sends a message and returns it with an id", async () => {

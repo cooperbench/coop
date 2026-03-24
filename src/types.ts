@@ -1,9 +1,9 @@
 export type PeerStatus = "online" | "offline";
 
-export type Peer = {
+export type SquadMember = {
   id: string;
   user_id: string;
-  scope: string; // e.g. "arpan/cooperbench:main#a3f"
+  scope: string; // e.g. "arpan/cooperbench@macbook"
   status: PeerStatus;
   summary: string | null;
   last_seen: string;

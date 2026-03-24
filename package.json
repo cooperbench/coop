@@ -1,6 +1,6 @@
 {
   "name": "@cooperbench/coop",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "bin": {
     "coop": "./src/cli/index.ts"

@@ -74,6 +74,6 @@ export async function login(): Promise<void> {
   });
 
   const username = sessionData.session.user.user_metadata["user_name"] as string;
-  console.log(`Logged in as ${username}`);
+  console.log(`\n  \x1b[32m✓\x1b[0m Logged in as ${username}\n`);
   process.exit(0);
 }

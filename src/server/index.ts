@@ -4,12 +4,11 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { execFileSync } from "child_process";
 import { deriveScope } from "../session/scope.ts";
 import { generateSummary } from "../session/summary.ts";
-import { registerPeer, updatePeerStatus, heartbeat } from "../db/peers.ts";
+import { registerSquadMember, updateSquadStatus, heartbeat } from "../db/squad.ts";
 import { getClient } from "../db/client.ts";
 import { HEARTBEAT_INTERVAL_MS } from "../config.ts";
-import { listPeersTool } from "./tools/list_peers.ts";
+import { listSquadTool } from "./tools/list_squad.ts";
 import { sendMessageTool } from "./tools/send_message.ts";
-import { checkInboxTool } from "./tools/check_inbox.ts";
 import { setSummaryTool } from "./tools/set_summary.ts";
 import type { Message } from "../types.ts";
 
@@ -20,19 +19,19 @@ function notify(title: string, body: string): void {
   } catch { /* non-macOS or notification denied */ }
 }
 
-const tools = [listPeersTool, sendMessageTool, checkInboxTool, setSummaryTool];
+const tools = [listSquadTool, sendMessageTool, setSummaryTool];
 
 async function main(): Promise<void> {
   const scope = deriveScope();
   const summary = generateSummary();
 
-  await registerPeer(scope.full, summary);
+  await registerSquadMember(scope.full, summary);
 
   const heartbeatInterval = setInterval(() => heartbeat(scope.full), HEARTBEAT_INTERVAL_MS);
 
   async function shutdown(): Promise<void> {
     clearInterval(heartbeatInterval);
-    await updatePeerStatus(scope.full, "offline");
+    await updateSquadStatus(scope.full, "offline");
     process.exit(0);
   }
   process.on("SIGINT", shutdown);
@@ -84,14 +83,11 @@ async function main(): Promise<void> {
     let result: string;
 
     switch (tool.name) {
-      case "list_peers":
-        result = await listPeersTool.handler();
+      case "list_squad":
+        result = await listSquadTool.handler();
         break;
       case "send_message":
         result = await sendMessageTool.handler(args as { to_scope: string; body: string }, scope.full);
-        break;
-      case "check_inbox":
-        result = await checkInboxTool.handler(args as { unread_only: boolean }, scope.full);
         break;
       case "set_summary":
         result = await setSummaryTool.handler(args as { summary: string }, scope.full);

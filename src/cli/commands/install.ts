@@ -7,15 +7,21 @@ export async function install(): Promise<void> {
   const repoRoot = resolve(thisFile, "../../../../");
   const serverPath = resolve(repoRoot, "src/server/index.ts");
 
+  const green = (s: string) => `\x1b[32m${s}\x1b[0m`;
+  const dim = (s: string) => `\x1b[2m${s}\x1b[0m`;
+
+  process.stdout.write(`  Registering with Claude Code...`);
   try {
     execSync(`claude mcp remove coop 2>/dev/null; claude mcp add --scope user coop -- bun ${serverPath}`, {
-      stdio: "inherit",
+      stdio: "pipe",
       shell: "/bin/zsh",
     });
   } catch {
-    console.error("Failed to register MCP server. Is Claude Code installed?");
+    process.stdout.write("\n");
+    console.error(`  ${"\x1b[31m✗\x1b[0m"} Failed to register. Is Claude Code installed?`);
     process.exit(1);
   }
 
-  console.log("\nDone. Restart Claude Code to activate coop.");
+  process.stdout.write(`\r  ${green("✓")} Registered with Claude Code\n`);
+  console.log(`\n  ${dim("Restart Claude Code to activate coop.")}\n`);
 }

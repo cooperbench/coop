@@ -23,7 +23,7 @@ create trigger on_auth_user_created
   for each row execute procedure handle_new_user();
 
 -- Peers (one row per active Claude Code session)
-create table peers (
+create table squad (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   scope text not null unique, -- e.g. "arpan/cooperbench:main#a3f"
@@ -53,12 +53,12 @@ create table grants (
   unique (grantor_user_id, grantee_user_id, scope_pattern)
 );
 
--- View: all peers visible to the current user
-create or replace view visible_peers with (security_invoker = true) as
+-- View: all squad visible to the current user
+create or replace view visible_squad with (security_invoker = true) as
 select p.*
-from peers p
+from squad p
 where
-  -- Own peers
+  -- Own squad
   p.user_id = auth.uid()
   or
   -- Peers granted to you (with wildcard support)
@@ -71,46 +71,46 @@ where
       )
   );
 
--- Auto-mark peers offline if last_seen > 2 minutes ago
-create or replace function mark_stale_peers_offline()
+-- Auto-mark squad offline if last_seen > 2 minutes ago
+create or replace function mark_stale_squad_offline()
 returns void language sql security definer as $$
-  update peers
+  update squad
   set status = 'offline'
   where status = 'online'
     and last_seen < now() - interval '2 minutes';
 $$;
 
 -- RLS
-alter table peers enable row level security;
+alter table squad enable row level security;
 alter table messages enable row level security;
 alter table grants enable row level security;
 alter table users_public enable row level security;
 
--- peers: own rows only for write; reads go through visible_peers view
-create policy "own peers" on peers
+-- squad: own rows only for write; reads go through visible_squad view
+create policy "own squad" on squad
   for all using (user_id = auth.uid());
 
 -- messages: send only to visible scopes (own or granted), read your own inbox
 create policy "send messages" on messages
   for insert with check (
-    to_scope in (select scope from visible_peers)
+    to_scope in (select scope from visible_squad)
   );
 
 create policy "read inbox" on messages
   for select using (
-    to_scope in (select scope from visible_peers)
-    or from_scope in (select scope from peers where user_id = auth.uid())
+    to_scope in (select scope from visible_squad)
+    or from_scope in (select scope from squad where user_id = auth.uid())
   );
 
 create policy "mark read" on messages
   for update using (
-    to_scope in (select scope from peers where user_id = auth.uid())
+    to_scope in (select scope from squad where user_id = auth.uid())
   );
 
 create policy "delete own messages" on messages
   for delete using (
-    from_scope in (select scope from peers where user_id = auth.uid())
-    or to_scope in (select scope from peers where user_id = auth.uid())
+    from_scope in (select scope from squad where user_id = auth.uid())
+    or to_scope in (select scope from squad where user_id = auth.uid())
   );
 
 -- grants: manage your own grants

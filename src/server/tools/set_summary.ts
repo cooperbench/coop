@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { updatePeerSummary } from "../../db/peers.ts";
+import { updateSquadSummary } from "../../db/squad.ts";
 
 export const setSummaryTool = {
   name: "set_summary",
@@ -13,7 +13,7 @@ export const setSummaryTool = {
   },
   schema: z.object({ summary: z.string() }),
   async handler(args: { summary: string }, scope: string): Promise<string> {
-    await updatePeerSummary(scope, args.summary);
+    await updateSquadSummary(scope, args.summary);
     return `Summary updated.`;
   },
 };

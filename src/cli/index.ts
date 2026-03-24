@@ -3,7 +3,6 @@ import { Command } from "commander";
 import { login } from "./commands/login.ts";
 import { list } from "./commands/list.ts";
 import { send } from "./commands/send.ts";
-import { inbox } from "./commands/inbox.ts";
 import { grant, revoke, grants } from "./commands/grant.ts";
 import { install } from "./commands/install.ts";
 import { machineShow, machineSet } from "./commands/machine.ts";
@@ -18,12 +17,6 @@ program
   .command("send <scope> <message>")
   .description("Send a message to a scope")
   .action(send);
-
-program
-  .command("inbox")
-  .description("Show your inbox")
-  .option("-u, --unread", "Only show unread messages", false)
-  .action((opts: { unread: boolean }) => inbox(opts));
 
 program
   .command("grant <user> <scope>")
