@@ -19,12 +19,9 @@ async function isAuthenticated(): Promise<boolean> {
 
 async function cleanup() {
   const client = getClient();
-  await client.from("messages").delete().eq("from_scope", TEST_SCOPE);
-  await client.from("messages").delete().eq("to_scope", TEST_SCOPE);
-  await client.from("messages").delete().eq("from_scope", OTHER_SCOPE);
-  await client.from("messages").delete().eq("to_scope", OTHER_SCOPE);
-  await client.from("peers").delete().eq("scope", TEST_SCOPE);
-  await client.from("peers").delete().eq("scope", OTHER_SCOPE);
+  await client.from("messages").delete().in("from_scope", [TEST_SCOPE, OTHER_SCOPE]);
+  await client.from("messages").delete().in("to_scope", [TEST_SCOPE, OTHER_SCOPE, "akhatua2/*"]);
+  await client.from("peers").delete().in("scope", [TEST_SCOPE, OTHER_SCOPE]);
 }
 
 describe("coop E2E", () => {

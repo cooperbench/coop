@@ -107,6 +107,12 @@ create policy "mark read" on messages
     to_scope in (select scope from peers where user_id = auth.uid())
   );
 
+create policy "delete own messages" on messages
+  for delete using (
+    from_scope in (select scope from peers where user_id = auth.uid())
+    or to_scope in (select scope from peers where user_id = auth.uid())
+  );
+
 -- grants: manage your own grants
 create policy "manage grants" on grants
   for all using (grantor_user_id = auth.uid());
