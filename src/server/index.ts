@@ -91,7 +91,7 @@ async function main(): Promise<void> {
         result = await listSquadTool.handler(scope.full);
         break;
       case "send_message":
-        result = await sendMessageTool.handler(args as { to_scope: string; body: string }, scope.full);
+        result = await sendMessageTool.handler(args as { to: string | string[]; body: string }, scope.full);
         break;
       case "set_summary":
         result = await setSummaryTool.handler(args as { summary: string }, scope.full);
