@@ -15,9 +15,13 @@ import type { Message } from "../types.ts";
 
 function notify(title: string, body: string): void {
   try {
-    const safe = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    execFileSync("osascript", ["-e", `display notification "${safe(body)}" with title "${safe(title)}"`], { stdio: "ignore" });
-  } catch { /* non-macOS or notification denied */ }
+    if (process.platform === "darwin") {
+      const safe = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      execFileSync("osascript", ["-e", `display notification "${safe(body)}" with title "${safe(title)}"`], { stdio: "ignore" });
+    } else if (process.platform === "linux") {
+      execFileSync("notify-send", [title, body], { stdio: "ignore" });
+    }
+  } catch { /* notification tool unavailable or denied */ }
 }
 
 const tools = [myScopeTool, listSquadTool, sendMessageTool, setSummaryTool];

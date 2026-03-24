@@ -12,7 +12,7 @@ fi
 echo "Installing coop..."
 
 rm -rf "$INSTALL_DIR"
-git clone --depth 1 https://github.com/cooperbench/coop "$INSTALL_DIR" --quiet
+git clone --depth 1 https://github.com/cooperbench/claude-coop "$INSTALL_DIR" --quiet
 cd "$INSTALL_DIR"
 bun install --frozen-lockfile --quiet
 bun link --quiet

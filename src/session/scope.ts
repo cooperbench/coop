@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
+import { basename } from "path";
 import type { ScopeInfo, AuthSession } from "../types.ts";
 import { AUTH_FILE, getMachineName } from "../config.ts";
 
@@ -35,7 +36,7 @@ export function deriveScope(): ScopeInfo {
   const remote = gitOutput("git remote get-url origin");
   const repo = remote
     ? parseRepoName(remote)
-    : process.cwd().split("/").pop() ?? "unknown";
+    : basename(process.cwd()) || "unknown";
   const username = getUsername();
   const machine = getMachineName();
 
