@@ -35,20 +35,37 @@ describe("applyToggle", () => {
     expect(checked.size).toBe(0);
   });
 
-  it("selecting an individual deselects the wildcard", () => {
+  it("selecting an individual while wildcard is active: removes wildcard, expands all others, unchecks target", () => {
     const checked = new Set(["arpan/*"]);
+    // Toggle index 0 (arpan/coop@macbook) — should uncheck it, keep arpan/other@macbook checked
     applyToggle(checked, items, 0);
     expect(checked.has("arpan/*")).toBe(false);
-    expect(checked.has("arpan/coop@macbook")).toBe(true);
+    expect(checked.has("arpan/coop@macbook")).toBe(false);   // the toggled one is removed
+    expect(checked.has("arpan/other@macbook")).toBe(true);   // all others stay checked
   });
 
-  it("selecting multiple individuals keeps them all", () => {
+  it("checking all individuals auto-promotes to wildcard", () => {
     const checked = new Set<string>();
-    applyToggle(checked, items, 0);
-    applyToggle(checked, items, 1);
-    expect(checked.size).toBe(2);
-    expect(checked.has("arpan/coop@macbook")).toBe(true);
+    applyToggle(checked, items, 0); // arpan/coop@macbook
+    applyToggle(checked, items, 1); // arpan/other@macbook — now all individuals checked
+    expect(checked.has("arpan/*")).toBe(true);
+    expect(checked.has("arpan/coop@macbook")).toBe(false);  // individuals cleared
+    expect(checked.has("arpan/other@macbook")).toBe(false);
+  });
+
+  it("unchecking one individual when wildcard is active expands to all-minus-one", () => {
+    const checked = new Set(["arpan/*"]);
+    applyToggle(checked, items, 0); // uncheck arpan/coop@macbook
+    expect(checked.has("arpan/*")).toBe(false);
+    expect(checked.has("arpan/coop@macbook")).toBe(false);
     expect(checked.has("arpan/other@macbook")).toBe(true);
+  });
+
+  it("unchecking then re-checking all individuals re-promotes to wildcard", () => {
+    const checked = new Set(["arpan/*"]);
+    applyToggle(checked, items, 0); // uncheck one → expands, removes coop
+    applyToggle(checked, items, 0); // re-check it → all individuals checked again
+    expect(checked.has("arpan/*")).toBe(true);
   });
 });
 

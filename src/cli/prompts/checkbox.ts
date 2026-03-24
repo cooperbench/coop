@@ -18,12 +18,27 @@ export function applyToggle(checked: Set<string>, items: CheckboxItem[], index: 
     }
   } else {
     const wildcard = items.find((i) => i.value.endsWith("/*"));
-    if (wildcard) checked.delete(wildcard.value);
+    if (wildcard && checked.has(wildcard.value)) {
+      // Wildcard was active — expand it to all individuals first, then toggle the target
+      checked.delete(wildcard.value);
+      for (const i of items) {
+        if (!i.value.endsWith("/*")) checked.add(i.value);
+      }
+    }
 
     if (checked.has(item.value)) {
       checked.delete(item.value);
     } else {
       checked.add(item.value);
+      // If all individuals are now checked, promote to wildcard
+      const individuals = items.filter((i) => !i.value.endsWith("/*"));
+      if (individuals.every((i) => checked.has(i.value))) {
+        const wildcard = items.find((i) => i.value.endsWith("/*"));
+        if (wildcard) {
+          for (const i of individuals) checked.delete(i.value);
+          checked.add(wildcard.value);
+        }
+      }
     }
   }
 }
@@ -59,6 +74,7 @@ export async function checkbox(
   process.stdout.write("\x1b[?25l"); // hide cursor
 
   function buildLines(): string[] {
+    const wildcardActive = items.some((i) => i.value.endsWith("/*") && checked.has(i.value));
     const lines: string[] = [];
     lines.push(message);
     lines.push(dim("↑↓ to move  ·  space to toggle  ·  enter to confirm"));
@@ -66,7 +82,7 @@ export async function checkbox(
     for (let i = 0; i < items.length; i++) {
       const item = items[i]!;
       if (item.dividerBefore) lines.push(dim("────"));
-      const isChecked = checked.has(item.value);
+      const isChecked = wildcardActive || checked.has(item.value);
       const mark = isChecked ? green("✓") : red("✗");
       const label = i === cursor ? invert(` ${item.label}`) : ` ${item.label}`;
       lines.push(`${mark}${label}`);
