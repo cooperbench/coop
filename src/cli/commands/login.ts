@@ -4,14 +4,18 @@ import type { AddressInfo } from "net";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, HOSTED_CALLBACK_URL } from "../../config.ts";
 import { getClient } from "../../db/client.ts";
 
-function tryOpenBrowser(url: string): boolean {
-  const openCmd = process.platform === "darwin" ? "open" : "xdg-open";
-  try {
-    Bun.spawn([openCmd, url], { stderr: "ignore", stdout: "ignore" });
-    return true;
-  } catch {
-    return false;
+/** Check if we have a local graphical desktop that can open a browser. */
+function hasLocalBrowser(): boolean {
+  if (process.platform === "darwin") return true;
+  if (process.platform === "linux") {
+    return !!(process.env["DISPLAY"] || process.env["WAYLAND_DISPLAY"]);
   }
+  return false;
+}
+
+function openBrowser(url: string): void {
+  const openCmd = process.platform === "darwin" ? "open" : "xdg-open";
+  Bun.spawn([openCmd, url], { stderr: "ignore", stdout: "ignore" });
 }
 
 /** Read a single line from stdin. */
@@ -77,7 +81,7 @@ async function loginLocal(
         })
         .then(({ data, error }: { data: any; error: any }) => {
           if (error) { server.close(); reject(error); return; }
-          tryOpenBrowser(data.url);
+          openBrowser(data.url);
           console.log(`\nOpening browser for authentication...`);
           console.log(`If it didn't open, visit:\n\n  ${data.url}\n`);
         });
@@ -126,10 +130,9 @@ export async function login(): Promise<void> {
     auth: { flowType: "pkce", persistSession: false },
   });
 
-  // If a browser can be opened locally, use the localhost callback flow.
+  // If a local desktop is available, use the localhost callback flow.
   // Otherwise fall back to the headless flow with a hosted callback page.
-  const hasBrowser = tryOpenBrowser("about:blank");
-  if (hasBrowser) {
+  if (hasLocalBrowser()) {
     await loginLocal(tempClient);
   } else {
     await loginHeadless(tempClient);
