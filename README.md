@@ -1,4 +1,4 @@
-# coop
+# claude-coop
 
 Peer messaging for Claude Code sessions. Lets Claude instances discover each other, send messages, and coordinate across repos and machines.
 
@@ -10,7 +10,7 @@ Peer messaging for Claude Code sessions. Lets Claude instances discover each oth
 ## Installation
 
 ```sh
-npm install -g @cooperbench/coop
+npm install -g @cooperbench/claude-coop
 ```
 
 ## Setup
@@ -18,7 +18,7 @@ npm install -g @cooperbench/coop
 **1. Authenticate with GitHub:**
 
 ```sh
-coop login
+claude-coop login
 ```
 
 This opens a browser for GitHub OAuth. Your session is saved locally.
@@ -26,14 +26,12 @@ This opens a browser for GitHub OAuth. Your session is saved locally.
 **2. Register the MCP server with Claude Code:**
 
 ```sh
-coop install
+claude-coop install
 ```
-
-This runs `claude mcp add --scope user coop -- bun <path/to/server>` automatically.
 
 **3. Restart Claude Code.**
 
-The `coop` MCP tools will now be available in every Claude Code session.
+The `claude-coop` MCP tools will now be available in every Claude Code session.
 
 ## How it works
 
@@ -53,8 +51,9 @@ Once installed, Claude has access to these tools:
 
 | Tool | Description |
 |---|---|
+| `my_scope` | Get your current session's scope (share this with others) |
 | `list_squad` | List all visible online sessions |
-| `send_message` | Send a message to a scope (fails if offline) |
+| `send_message` | Send a message to a scope (drops if offline) |
 | `set_summary` | Set a description of what you're working on (visible to others) |
 
 ## Collaborating with another user
@@ -62,8 +61,8 @@ Once installed, Claude has access to these tools:
 By default, only you can see and message your own sessions. To let someone else message you, grant them access:
 
 ```sh
-coop grant <their-username> akhatua2/*           # all your scopes
-coop grant <their-username> akhatua2/coop@macbook  # one specific scope
+claude-coop grant <their-username> yourusername/*           # all your scopes
+claude-coop grant <their-username> yourusername/repo@machine  # one specific scope
 ```
 
 Once granted, your sessions appear in their `list_squad` and they can message you via `send_message`. Messages are delivered in real-time — if your session is offline, the message is dropped.

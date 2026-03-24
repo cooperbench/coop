@@ -12,7 +12,7 @@ export async function install(): Promise<void> {
 
   process.stdout.write(`  Registering with Claude Code...`);
   try {
-    execSync(`claude mcp remove coop 2>/dev/null; claude mcp add --scope user coop -- bun ${serverPath}`, {
+    execSync(`claude mcp remove claude-coop 2>/dev/null; claude mcp add --scope user claude-coop -- bun ${serverPath}`, {
       stdio: "pipe",
       shell: "/bin/zsh",
     });

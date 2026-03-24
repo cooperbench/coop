@@ -1,9 +1,9 @@
 {
-  "name": "@cooperbench/coop",
-  "version": "0.1.8",
+  "name": "@cooperbench/claude-coop",
+  "version": "0.1.0",
   "type": "module",
   "bin": {
-    "coop": "./src/cli/index.ts"
+    "claude-coop": "./src/cli/index.ts"
   },
   "scripts": {
     "cli": "bun src/cli/index.ts",
