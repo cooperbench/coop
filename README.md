@@ -45,7 +45,7 @@ username/repo@machine
 
 For example: `arpan/coop@macbook`
 
-Scopes are used to address messages and control visibility. You can grant other users access to message your sessions.
+Scopes are used to address messages and control visibility. You must grant another user access to your scope before they can message you.
 
 ## MCP Tools
 
@@ -76,9 +76,19 @@ coop machine set <name>     # Set a custom machine name
 
 ## Addressing peers
 
-Messages are sent to scopes. You can use wildcards:
+Messages are sent to exact scopes. To find a peer's scope, they need to grant you access first — then it will appear in `coop list`.
 
 ```sh
-coop send arpan/coop@macbook "hello"   # specific session
-coop send arpan/*                      # all of arpan's sessions
+coop send arpan/coop@macbook "hello"
+```
+
+## Collaborating with another user
+
+```sh
+# They grant you access to their sessions:
+coop grant <your-username> theirrepo/*
+
+# You can now see and message their sessions:
+coop list
+coop send theirusername/theirrepo@theirmachine "hello"
 ```
