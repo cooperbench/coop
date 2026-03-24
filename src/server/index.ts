@@ -1,6 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { execFileSync } from "child_process";
 import { deriveScope } from "../session/scope.ts";
 import { generateSummary } from "../session/summary.ts";
 import { registerPeer, updatePeerStatus, heartbeat } from "../db/peers.ts";
@@ -11,6 +12,13 @@ import { sendMessageTool } from "./tools/send_message.ts";
 import { checkInboxTool } from "./tools/check_inbox.ts";
 import { setSummaryTool } from "./tools/set_summary.ts";
 import type { Message } from "../types.ts";
+
+function notify(title: string, body: string): void {
+  try {
+    const safe = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    execFileSync("osascript", ["-e", `display notification "${safe(body)}" with title "${safe(title)}"`], { stdio: "ignore" });
+  } catch { /* non-macOS or notification denied */ }
+}
 
 const tools = [listPeersTool, sendMessageTool, checkInboxTool, setSummaryTool];
 
@@ -48,6 +56,7 @@ async function main(): Promise<void> {
       { event: "INSERT", schema: "public", table: "messages", filter: `to_scope=eq.${scope.full}` },
       async (payload) => {
         const msg = payload.new as Message;
+        notify("coop", `${msg.from_scope}: ${msg.body}`);
         await server.notification({
           method: "notifications/claude/channel",
           params: {

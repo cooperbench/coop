@@ -16,7 +16,7 @@ const fileStorage = {
     let store: Record<string, string> = {};
     try { store = JSON.parse(readFileSync(AUTH_FILE, "utf8")); } catch { /* first write */ }
     mkdirSync(CONFIG_DIR, { recursive: true });
-    writeFileSync(AUTH_FILE, JSON.stringify({ ...store, [key]: value }, null, 2));
+    writeFileSync(AUTH_FILE, JSON.stringify({ ...store, [key]: value }, null, 2), { mode: 0o600 });
   },
   removeItem(key: string): void {
     try {

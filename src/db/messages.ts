@@ -1,7 +1,13 @@
 import { getClient } from "./client.ts";
 import type { Message } from "../types.ts";
 
+const MAX_BODY_LENGTH = 10_000;
+const SCOPE_PATTERN = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+(@[a-zA-Z0-9_.-]+)?$|^\*$|^[a-zA-Z0-9_.-]+\/\*$/;
+
 export async function sendMessage(fromScope: string, toScope: string, body: string): Promise<Message> {
+  if (body.length > MAX_BODY_LENGTH) throw new Error(`Message too long (max ${MAX_BODY_LENGTH} characters)`);
+  if (!toScope || !SCOPE_PATTERN.test(toScope)) throw new Error(`Invalid scope: ${toScope}`);
+
   const { data, error } = await getClient()
     .from("messages")
     .insert({ from_scope: fromScope, to_scope: toScope, body })

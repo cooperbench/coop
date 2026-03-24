@@ -17,5 +17,5 @@ export async function install(): Promise<void> {
     process.exit(1);
   }
 
-  console.log("Done. Restart Claude Code for changes to take effect.");
+  console.log("\nDone. Restart Claude Code to activate coop.");
 }
