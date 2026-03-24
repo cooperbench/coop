@@ -35,3 +35,6 @@ export const PEER_TIMEOUT_MS = 2 * 60 * 1000;
 
 // Heartbeat interval (ms)
 export const HEARTBEAT_INTERVAL_MS = 60 * 1000;
+
+// Hosted callback page for headless/remote login (GitHub Pages)
+export const HOSTED_CALLBACK_URL = "https://cooperbench.github.io/claude-coop/callback";

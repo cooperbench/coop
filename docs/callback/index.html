@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>claude-coop</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0a0a0a; color: #fff; }
+    .card { text-align: center; max-width: 480px; padding: 2rem; }
+    h1 { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem; }
+    p { color: #888; font-size: 0.9rem; line-height: 1.5; }
+    .code-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin: 1.5rem 0; cursor: pointer; position: relative; transition: border-color 0.15s; }
+    .code-box:hover { border-color: #555; }
+    .code { font-family: "SF Mono", "Fira Code", monospace; font-size: 0.95rem; word-break: break-all; color: #4ade80; user-select: all; }
+    .hint { font-size: 0.8rem; color: #555; margin-top: 0.5rem; }
+    .copied { color: #4ade80; font-size: 0.85rem; margin-top: 0.75rem; opacity: 0; transition: opacity 0.15s; }
+    .copied.show { opacity: 1; }
+    .error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="card" id="root"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const error = params.get("error_description") || params.get("error");
+    const root = document.getElementById("root");
+
+    if (code) {
+      root.innerHTML = `
+        <h1>Authenticated</h1>
+        <p>Copy this code and paste it in your terminal:</p>
+        <div class="code-box" id="code-box">
+          <div class="code" id="code">${code}</div>
+          <div class="hint">click to copy</div>
+        </div>
+        <div class="copied" id="copied">Copied!</div>
+      `;
+      document.getElementById("code-box").addEventListener("click", () => {
+        navigator.clipboard.writeText(code).then(() => {
+          document.getElementById("copied").classList.add("show");
+          setTimeout(() => document.getElementById("copied").classList.remove("show"), 2000);
+        });
+      });
+    } else {
+      root.innerHTML = `
+        <h1 class="error">Authentication failed</h1>
+        <p>${error || "No authorization code received. Please try again."}</p>
+      `;
+    }
+  </script>
+</body>
+</html>

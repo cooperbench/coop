@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import { createInterface } from "readline";
 import type { AddressInfo } from "net";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../config.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, HOSTED_CALLBACK_URL } from "../../config.ts";
 import { getClient } from "../../db/client.ts";
 
 function tryOpenBrowser(url: string): boolean {
@@ -14,7 +14,7 @@ function tryOpenBrowser(url: string): boolean {
   }
 }
 
-/** Read a single line from stdin (resolves on first Enter). */
+/** Read a single line from stdin. */
 function readLine(prompt: string): Promise<string> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {
@@ -25,98 +25,13 @@ function readLine(prompt: string): Promise<string> {
   });
 }
 
-export async function login(): Promise<void> {
-  // Use a temporary client for the PKCE flow (no storage yet)
-  const { createClient } = await import("@supabase/supabase-js");
-  const tempClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { flowType: "pkce", persistSession: false },
-  });
-
-  // Start a local callback server — works when the browser is on the same machine
-  let serverResolved = false;
-  const code = await new Promise<string>((resolve, reject) => {
-    let port = 0;
-    const done = (code: string) => { if (!serverResolved) { serverResolved = true; server.close(); resolve(code); } };
-    const fail = (err: Error) => { if (!serverResolved) { serverResolved = true; server.close(); reject(err); } };
-
-    const server = createServer((req, res) => {
-      const url = new URL(req.url ?? "/", `http://localhost:${port}`);
-      const code = url.searchParams.get("code");
-      const error = url.searchParams.get("error_description") ?? url.searchParams.get("error");
-
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>claude-coop</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0a0a0a; color: #fff; }
-    .card { text-align: center; }
-    h1 { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem; }
-    p { color: #888; font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>You're logged in</h1>
-    <p>You can close this tab and return to the terminal.</p>
-  </div>
-</body>
-</html>`);
-
-      if (code) done(code);
-      else fail(new Error(error ?? "No code received"));
-    });
-
-    server.listen(0, () => {
-      port = (server.address() as AddressInfo).port;
-      const callbackUrl = `http://localhost:${port}/callback`;
-
-      tempClient.auth
-        .signInWithOAuth({
-          provider: "github",
-          options: { redirectTo: callbackUrl, skipBrowserRedirect: true },
-        })
-        .then(async ({ data, error }) => {
-          if (error) { fail(error); return; }
-
-          const opened = tryOpenBrowser(data.url);
-          if (opened) {
-            console.log(`\nOpening browser for authentication...`);
-            console.log(`If it didn't open, visit:\n\n  ${data.url}\n`);
-          } else {
-            // Headless / remote VM — browser can't reach localhost callback
-            console.log(`\nOpen this URL in a browser to authenticate:\n\n  ${data.url}\n`);
-            console.log(`After authorizing, your browser will redirect to a localhost URL that may not load.`);
-            console.log(`Copy the full URL from the address bar and paste it below.\n`);
-
-            try {
-              const pasted = await readLine("  Paste redirect URL: ");
-              if (serverResolved) return; // callback server already got it
-              const parsed = new URL(pasted);
-              const pastedCode = parsed.searchParams.get("code");
-              if (pastedCode) {
-                done(pastedCode);
-              } else {
-                const pastedError = parsed.searchParams.get("error_description") ?? parsed.searchParams.get("error");
-                fail(new Error(pastedError ?? "No code found in URL. Make sure you copied the full redirect URL."));
-              }
-            } catch (e) {
-              if (!serverResolved) fail(e instanceof Error ? e : new Error("Invalid URL"));
-            }
-          }
-        });
-    });
-
-    setTimeout(() => { fail(new Error("Timed out waiting for authentication (5 minutes)")); }, 5 * 60 * 1000);
-  });
-
-  // Exchange code and persist session via the shared client (which uses file storage)
+async function exchangeAndPersist(
+  tempClient: any,
+  code: string,
+): Promise<void> {
   const { data: sessionData, error: sessionError } = await tempClient.auth.exchangeCodeForSession(code);
   if (sessionError) throw new Error(`Session exchange failed: ${sessionError.message}`);
 
-  // Set session on the persistent client so it gets written to file storage
   await getClient().auth.setSession({
     access_token: sessionData.session.access_token,
     refresh_token: sessionData.session.refresh_token,
@@ -124,5 +39,101 @@ export async function login(): Promise<void> {
 
   const username = sessionData.session.user.user_metadata["user_name"] as string;
   console.log(`\n  \x1b[32m✓\x1b[0m Logged in as ${username}\n`);
+}
+
+/**
+ * Local-browser login: starts a localhost callback server.
+ * Used when a browser can be opened on the same machine.
+ */
+async function loginLocal(
+  tempClient: any,
+): Promise<void> {
+  const code = await new Promise<string>((resolve, reject) => {
+    const server = createServer((req, res) => {
+      const port = (server.address() as AddressInfo).port;
+      const url = new URL(req.url ?? "/", `http://localhost:${port}`);
+      const code = url.searchParams.get("code");
+      const error = url.searchParams.get("error_description") ?? url.searchParams.get("error");
+
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>claude-coop</title>
+<style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0a0a0a;color:#fff}.card{text-align:center}h1{font-size:1.5rem;font-weight:500}p{color:#888;font-size:.9rem}</style>
+</head><body><div class="card"><h1>You're logged in</h1><p>You can close this tab and return to the terminal.</p></div></body></html>`);
+      server.close();
+
+      if (code) resolve(code);
+      else reject(new Error(error ?? "No code received"));
+    });
+
+    server.listen(0, () => {
+      const port = (server.address() as AddressInfo).port;
+      const callbackUrl = `http://localhost:${port}/callback`;
+
+      tempClient.auth
+        .signInWithOAuth({
+          provider: "github",
+          options: { redirectTo: callbackUrl, skipBrowserRedirect: true },
+        })
+        .then(({ data, error }: { data: any; error: any }) => {
+          if (error) { server.close(); reject(error); return; }
+          tryOpenBrowser(data.url);
+          console.log(`\nOpening browser for authentication...`);
+          console.log(`If it didn't open, visit:\n\n  ${data.url}\n`);
+        });
+    });
+
+    setTimeout(() => { server.close(); reject(new Error("Timed out")); }, 5 * 60 * 1000);
+  });
+
+  await exchangeAndPersist(tempClient, code);
+}
+
+/**
+ * Headless login: redirects to a hosted callback page that displays the code.
+ * User copies the code and pastes it back into the terminal.
+ */
+async function loginHeadless(
+  tempClient: any,
+): Promise<void> {
+  const { data, error } = await tempClient.auth.signInWithOAuth({
+    provider: "github",
+    options: { redirectTo: HOSTED_CALLBACK_URL, skipBrowserRedirect: true },
+  });
+  if (error) throw error;
+
+  console.log(`\nOpen this URL in a browser to authenticate:\n\n  ${data.url}\n`);
+  console.log(`After authorizing, you'll see a code. Copy it and paste it here.\n`);
+
+  const input = await readLine("  Paste code: ");
+  if (!input) throw new Error("No code provided");
+
+  // Accept either a raw code or a full URL containing ?code=...
+  let code: string;
+  try {
+    const parsed = new URL(input);
+    code = parsed.searchParams.get("code") ?? input;
+  } catch {
+    code = input;
+  }
+
+  await exchangeAndPersist(tempClient, code);
+}
+
+export async function login(): Promise<void> {
+  const { createClient } = await import("@supabase/supabase-js");
+  const tempClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { flowType: "pkce", persistSession: false },
+  });
+
+  // If a browser can be opened locally, use the localhost callback flow.
+  // Otherwise fall back to the headless flow with a hosted callback page.
+  const hasBrowser = tryOpenBrowser("about:blank");
+  if (hasBrowser) {
+    await loginLocal(tempClient);
+  } else {
+    await loginHeadless(tempClient);
+  }
+
   process.exit(0);
 }
