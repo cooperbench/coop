@@ -32,12 +32,14 @@ export async function updateSquadStatus(scope: string, status: PeerStatus): Prom
 }
 
 export async function updateSquadSummary(scope: string, summary: string): Promise<void> {
-  const { error } = await getClient()
+  const { data, error } = await getClient()
     .from("squad")
     .update({ summary })
-    .eq("scope", scope);
+    .eq("scope", scope)
+    .select();
 
   if (error) throw new Error(`Failed to update summary: ${error.message}`);
+  if (!data || data.length === 0) throw new Error(`No squad member found for scope: ${scope}`);
 }
 
 export async function heartbeat(scope: string): Promise<void> {
@@ -63,10 +65,14 @@ export async function listSquad(): Promise<SquadMember[]> {
 export async function getSquadMemberStatus(scope: string): Promise<PeerStatus | null> {
   const { data, error } = await getClient()
     .from("visible_squad")
-    .select("status")
+    .select("status, last_seen")
     .eq("scope", scope)
     .single();
 
   if (error || !data) return null;
-  return (data as { status: PeerStatus }).status;
+  const row = data as { status: PeerStatus; last_seen: string };
+
+  // Treat as offline if last heartbeat was more than 2 minutes ago
+  const stale = Date.now() - new Date(row.last_seen).getTime() > 2 * 60 * 1000;
+  return stale ? "offline" : row.status;
 }
