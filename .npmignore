@@ -1,4 +1,10 @@
 .claude/
 tests/
+docs/
+supabase/
 .env
 *.local
+.mcp.json
+.gitignore
+bun.lock
+tsconfig.json
