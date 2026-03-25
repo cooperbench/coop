@@ -43,7 +43,14 @@ async function main(): Promise<void> {
       },
       instructions: `You are connected to claude-coop. Other Claude Code sessions can see your status and message you in real time.
 
-IMPORTANT: Call set_summary at the start of every session and whenever your task focus changes. Write summaries that are understandable to someone who knows nothing about the project — describe what you're actually doing in plain language, not internal jargon or branch names. Good: "Building a login page with Google OAuth for a SaaS app" or "Fixing a bug where users see stale data after editing their profile". Bad: "myapp: OAuth flow" or "on improvements/auth branch" or "starting up". Keep it under 15 words. This is how your peers know what you're working on.`,
+## Summary
+Call set_summary at the start of every session and whenever your task focus changes. Write summaries understandable to someone who knows nothing about the project — plain language, not jargon or branch names. Good: "Building a login page with Google OAuth for a SaaS app". Bad: "myapp: OAuth flow". Keep it under 15 words.
+
+## Collaboration
+- Before starting work, call list_squad to see who else is online. If another session is working in the same repo, coordinate to avoid conflicts — especially on shared files.
+- Use threads to organize conversations by topic (e.g. "auth-refactor", "bug-investigation"). Always reply on the same thread rather than starting new ones.
+- Keep messages concise and actionable. State what you need or what you found — don't send greetings or filler.
+- If you're about to edit a file another session mentioned in their summary, message them first to avoid merge conflicts.`,
     }
   );
 
