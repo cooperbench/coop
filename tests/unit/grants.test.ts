@@ -28,19 +28,19 @@ describe("grants username resolution", () => {
 
   it("resolves UUIDs to usernames", () => {
     const result = resolveGrantUsernames(rows, users);
-    expect(result[0].grantee_username).toBe("alice");
-    expect(result[1].grantee_username).toBe("bob");
+    expect(result[0]!.grantee_username).toBe("alice");
+    expect(result[1]!.grantee_username).toBe("bob");
   });
 
   it("preserves scope_pattern", () => {
     const result = resolveGrantUsernames(rows, users);
-    expect(result[0].scope_pattern).toBe("arpan/*");
-    expect(result[1].scope_pattern).toBe("arpan/coop@macbook");
+    expect(result[0]!.scope_pattern).toBe("arpan/*");
+    expect(result[1]!.scope_pattern).toBe("arpan/coop@macbook");
   });
 
   it("falls back to raw UUID when user not found", () => {
     const result = resolveGrantUsernames(rows, [{ id: "uuid-1", username: "alice" }]);
-    expect(result[1].grantee_username).toBe("uuid-2");
+    expect(result[1]!.grantee_username).toBe("uuid-2");
   });
 
   it("returns empty array for no grants", () => {
@@ -53,7 +53,7 @@ describe("grants username resolution", () => {
       { scope_pattern: "arpan/other@macbook", grantee_user_id: "uuid-1", created_at: "2024-01-02T00:00:00Z" },
     ];
     const result = resolveGrantUsernames(dupRows, users);
-    expect(result[0].grantee_username).toBe("alice");
-    expect(result[1].grantee_username).toBe("alice");
+    expect(result[0]!.grantee_username).toBe("alice");
+    expect(result[1]!.grantee_username).toBe("alice");
   });
 });

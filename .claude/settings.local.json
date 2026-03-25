@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__coop__list_peers",
-      "Bash(git remote:*)",
-      "Bash(git rm:*)"
-    ]
-  }
-}

@@ -28,7 +28,7 @@ const tools = [myScopeTool, listSquadTool, sendMessageTool, setSummaryTool];
 
 async function main(): Promise<void> {
   const scope = deriveScope();
-  const summary = generateSummary();
+  const summary = generateSummary(scope.repo);
 
   await registerSquadMember(scope.full, summary);
 
@@ -49,6 +49,9 @@ async function main(): Promise<void> {
         tools: {},
         experimental: { "claude/channel": {} },
       },
+      instructions: `You are connected to claude-coop. Other Claude Code sessions can see your status and message you in real time.
+
+IMPORTANT: Call set_summary at the start of every session and whenever your task focus changes. Write summaries that are understandable to someone who knows nothing about the project — describe what you're actually doing in plain language, not internal jargon or branch names. Good: "Building a login page with Google OAuth for a SaaS app" or "Fixing a bug where users see stale data after editing their profile". Bad: "myapp: OAuth flow" or "on improvements/auth branch" or "starting up". Keep it under 15 words. This is how your peers know what you're working on.`,
     }
   );
 

@@ -32,3 +32,12 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# MCP config (local only)
+.mcp.json
+
+# Supabase temp files
+supabase/.temp/
+
+# Claude local settings
+.claude/
