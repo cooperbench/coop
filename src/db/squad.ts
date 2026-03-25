@@ -55,6 +55,20 @@ export async function heartbeat(scope: string): Promise<void> {
     .eq("scope", scope);
 
   if (error) throw new Error(`Failed to heartbeat: ${error.message}`);
+
+  // Opportunistically clean up stale data (offline > 24h, read messages > 7d)
+  await cleanup().catch(() => {});
+}
+
+async function cleanup(): Promise<void> {
+  const client = getClient();
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  await Promise.all([
+    client.from("squad").delete().eq("status", "offline").lt("last_seen", oneDayAgo),
+    client.from("messages").delete().eq("read", true).lt("created_at", sevenDaysAgo),
+  ]);
 }
 
 export async function listSquad(): Promise<SquadMember[]> {
