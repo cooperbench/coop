@@ -29,9 +29,13 @@ This opens a browser for GitHub OAuth. Your session is saved locally.
 claude-coop install
 ```
 
-**3. Restart Claude Code.**
+**3. Start Claude Code with real-time messaging:**
 
-The `claude-coop` MCP tools will now be available in every Claude Code session.
+```sh
+claude --dangerously-skip-permissions --dangerously-load-development-channels server:claude-coop
+```
+
+The `--dangerously-load-development-channels` flag enables real-time message delivery — without it, messages won't be pushed into your session live. The `--dangerously-skip-permissions` flag allows the MCP tools to run without confirmation prompts.
 
 ## How it works
 
