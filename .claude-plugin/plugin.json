@@ -1,0 +1,12 @@
+{
+  "name": "cooperator",
+  "description": "Peer messaging and coordination for Claude Code sessions — discover teammates, send messages, and collaborate across repos and machines.",
+  "version": "0.1.7",
+  "keywords": [
+    "collaboration",
+    "messaging",
+    "coordination",
+    "multi-agent",
+    "mcp"
+  ]
+}

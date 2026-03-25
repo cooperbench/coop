@@ -7,7 +7,7 @@
   },
   "scripts": {
     "cli": "bun src/cli/index.ts",
-    "start": "bun src/server/index.ts",
+    "start": "bun install --no-summary && bun src/server/index.ts",
     "test": "bun test tests/"
   },
   "dependencies": {
