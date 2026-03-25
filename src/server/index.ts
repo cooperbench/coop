@@ -1,7 +1,6 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { execFileSync } from "child_process";
 import { deriveScope } from "../session/scope.ts";
 import { generateSummary } from "../session/summary.ts";
 import { registerSquadMember, updateSquadStatus, heartbeat, findScopesWithPrefix } from "../db/squad.ts";
@@ -13,17 +12,6 @@ import { sendMessageTool } from "./tools/send_message.ts";
 import { setSummaryTool } from "./tools/set_summary.ts";
 import { myScopeTool } from "./tools/my_scope.ts";
 import type { Message } from "../types.ts";
-
-function notify(title: string, body: string): void {
-  try {
-    if (process.platform === "darwin") {
-      const safe = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      execFileSync("osascript", ["-e", `display notification "${safe(body)}" with title "${safe(title)}"`], { stdio: "ignore" });
-    } else if (process.platform === "linux") {
-      execFileSync("notify-send", [title, body], { stdio: "ignore" });
-    }
-  } catch { /* notification tool unavailable or denied */ }
-}
 
 const tools = [myScopeTool, listSquadTool, sendMessageTool, setSummaryTool];
 
@@ -68,7 +56,6 @@ IMPORTANT: Call set_summary at the start of every session and whenever your task
       async (payload) => {
         const msg = payload.new as Message;
         const threadPrefix = msg.thread ? `[thread: ${msg.thread}] ` : "";
-        notify("coop", `${threadPrefix}${msg.from_scope}: ${msg.body}`);
         await server.notification({
           method: "notifications/claude/channel",
           params: {
