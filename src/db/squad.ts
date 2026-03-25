@@ -87,6 +87,18 @@ export async function listOwnScopes(): Promise<SquadMember[]> {
   return (data as SquadMember[]).map((m) => ({ ...m, status: effectiveStatus(m.status, m.last_seen) }));
 }
 
+export async function findScopesWithPrefix(baseScope: string): Promise<{ scope: string; status: PeerStatus; last_seen: string }[]> {
+  // Escape LIKE wildcards (% and _) in the base scope
+  const escapedBase = baseScope.replace(/%/g, "\\%").replace(/_/g, "\\_");
+  const { data, error } = await getClient()
+    .from("squad")
+    .select("scope, status, last_seen")
+    .or(`scope.eq.${baseScope},scope.like.${escapedBase}#%`);
+
+  if (error) throw new Error(`Failed to query scopes: ${error.message}`);
+  return (data ?? []) as { scope: string; status: PeerStatus; last_seen: string }[];
+}
+
 export async function getSquadMemberStatus(scope: string): Promise<PeerStatus | null> {
   const { data, error } = await getClient()
     .from("visible_squad")

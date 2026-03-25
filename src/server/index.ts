@@ -4,7 +4,8 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { execFileSync } from "child_process";
 import { deriveScope } from "../session/scope.ts";
 import { generateSummary } from "../session/summary.ts";
-import { registerSquadMember, updateSquadStatus, heartbeat } from "../db/squad.ts";
+import { registerSquadMember, updateSquadStatus, heartbeat, findScopesWithPrefix } from "../db/squad.ts";
+import { pickScope } from "../session/claim-scope.ts";
 import { getClient } from "../db/client.ts";
 import { HEARTBEAT_INTERVAL_MS } from "../config.ts";
 import { listSquadTool } from "./tools/list_squad.ts";
@@ -27,7 +28,10 @@ function notify(title: string, body: string): void {
 const tools = [myScopeTool, listSquadTool, sendMessageTool, setSummaryTool];
 
 async function main(): Promise<void> {
-  const scope = deriveScope();
+  const baseScope = deriveScope();
+  const existing = await findScopesWithPrefix(baseScope.full);
+  const scopeId = pickScope(baseScope.full, existing);
+  const scope = { ...baseScope, full: scopeId };
   const summary = generateSummary(scope.repo);
 
   await registerSquadMember(scope.full, summary);
