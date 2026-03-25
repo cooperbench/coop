@@ -35,5 +35,5 @@ export type ScopeInfo = {
   username: string;
   repo: string;
   machine: string;
-  full: string; // "username/repo@machine"
+  full: string; // "username/repo@machine" or "username/repo#2@machine"
 };

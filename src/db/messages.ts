@@ -2,7 +2,7 @@ import { getClient } from "./client.ts";
 import type { Message } from "../types.ts";
 
 const MAX_BODY_LENGTH = 10_000;
-const SCOPE_PATTERN = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+(@[a-zA-Z0-9_.-]+)?$|^\*$|^[a-zA-Z0-9_.-]+\/\*$/;
+const SCOPE_PATTERN = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+(#\d+)?(@[a-zA-Z0-9_.-]+)?$|^\*$|^[a-zA-Z0-9_.-]+\/\*$/;
 
 export async function sendMessage(fromScope: string, toScope: string, body: string, thread?: string): Promise<Message> {
   if (body.length > MAX_BODY_LENGTH) throw new Error(`Message too long (max ${MAX_BODY_LENGTH} characters)`);
